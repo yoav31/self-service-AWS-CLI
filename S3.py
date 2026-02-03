@@ -48,4 +48,22 @@ def upload_file_bucket(bucket_name, file_path):
         click.secho(f"Successfully uploaded to S3!", fg='green', bold=True)
         
     except Exception as e:
-        click.secho(f"AWS Error: {e}", fg='red')        
+        click.secho(f"AWS Error: {e}", fg='red') 
+        
+def list_buckets():
+    """List all S3 buckets"""
+    s3_client = boto3.client('s3', region_name='us-east-1')
+    try:
+        response = s3_client.list_buckets()
+        buckets = response.get('Buckets', [])
+        
+        if not buckets:
+            click.secho("No S3 buckets found.", fg='yellow')
+            return
+        
+        click.secho("S3 Buckets:", fg='cyan', bold=True)
+        for bucket in buckets:
+            click.echo(f" - {bucket['Name']}")
+            
+    except Exception as e:
+        click.secho(f"AWS Error: {e}", fg='red')               
