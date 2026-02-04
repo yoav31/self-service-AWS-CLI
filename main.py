@@ -67,6 +67,8 @@ def create_route53_zone(domain):
 @click.option('--action', default='', help='Create, update, or delete DNS records')
 def manage_route53_records(domain, ip_address, action):
     manage_hosted_records(domain, ip_address, action)
+    
+    
         
 if __name__ == '__main__':
     cli()

@@ -57,7 +57,7 @@ def manage_hosted_records(domain, ip_address, action):
             click.secho("Invalid action. Use 'create', 'update', or 'delete'.", fg='red')
             return
         
-        response = client.change_resource_record_sets(
+        client.change_resource_record_sets(
             HostedZoneId=zone_id,
             ChangeBatch={
                 'Changes': [{
