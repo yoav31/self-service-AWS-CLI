@@ -74,3 +74,13 @@ def manage_hosted_records(domain, ip_address, action):
         click.secho(f"Record {action_type} successful for {domain} -> {ip_address}", fg='green', bold=True)
     except Exception as e:
         click.secho(f"Error managing records: {e}", fg='red')
+        
+def list_hosted_zones():
+    client = boto3.client('route53')
+    try:
+        zones = client.list_hosted_zones()
+        click.secho("Hosted Zones:", fg='cyan', bold=True)
+        for zone in zones['HostedZones']:
+            click.secho(f"- {zone['Name']} (ID: {zone['Id']})", fg='yellow')
+    except Exception as e:
+        click.secho(f"Error listing hosted zones: {e}", fg='red')        

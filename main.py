@@ -1,7 +1,7 @@
 import click
 from EC2 import create_instance, list_instances, manage_instance
 from S3 import create_bucket, upload_file_bucket, list_buckets
-from Route53 import create_hosted_zone, manage_hosted_records
+from Route53 import create_hosted_zone, manage_hosted_records, list_hosted_zones
 @click.group()
 def cli():
     """Platform Engineering CLI - Resource Management Tool"""
@@ -68,7 +68,9 @@ def create_route53_zone(domain):
 def manage_route53_records(domain, ip_address, action):
     manage_hosted_records(domain, ip_address, action)
     
-    
+@route53_group.command(name="list")
+def list_route53_zones():
+      list_hosted_zones() 
         
 if __name__ == '__main__':
     cli()
