@@ -1,6 +1,7 @@
 import click
 from EC2 import create_instance, list_instances, manage_instance
 from S3 import create_bucket, upload_file_bucket, list_buckets
+from Route53 import create_hosted_zone, manage_hosted_records
 @click.group()
 def cli():
     """Platform Engineering CLI - Resource Management Tool"""
@@ -48,6 +49,24 @@ def upload_file_s3(name, file_path):
 
 @s3_group.command(name="list")
 def list_s3():
-    list_buckets()         
+    list_buckets()   
+    
+@cli.group(name="route53")  
+def route53_group():
+    """Manage Route53 DNS"""
+    pass
+
+@route53_group.command(name="create_zone")
+@click.option('--domain', default='', help="Domain name for the hosted zone")
+def create_route53_zone(domain):
+    create_hosted_zone(domain)
+
+@route53_group.command(name="manage_records")
+@click.option('--domain', default='', help="Domain name for the hosted zone")
+@click.option('--ip_address', default='', help="IP address for the record")
+@click.option('--action', default='', help='Create, update, or delete DNS records')
+def manage_route53_records(domain, ip_address, action):
+    manage_hosted_records(domain, ip_address, action)
+        
 if __name__ == '__main__':
     cli()
