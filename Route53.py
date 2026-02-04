@@ -74,13 +74,43 @@ def manage_hosted_records(domain, ip_address, action):
         click.secho(f"Record {action_type} successful for {domain} -> {ip_address}", fg='green', bold=True)
     except Exception as e:
         click.secho(f"Error managing records: {e}", fg='red')
+   
         
 def list_hosted_zones():
     client = boto3.client('route53')
     try:
-        zones = client.list_hosted_zones()
-        click.secho("Hosted Zones:", fg='cyan', bold=True)
-        for zone in zones['HostedZones']:
-            click.secho(f"- {zone['Name']} (ID: {zone['Id']})", fg='yellow')
+        zones_response = client.list_hosted_zones()
+        found_managed_zone = False
+        click.secho("=== Managed Hosted Zones & Records ===", fg='cyan', bold=True)
+        
+        for zone in zones_response['HostedZones']:
+            zone_id_full = zone['Id']
+            zone_id = zone_id_full.split('/')[-1]
+            
+            tags_response = client.list_tags_for_resource(
+                ResourceType='hostedzone',
+                ResourceId=zone_id
+            )
+            tags = {tag['Key']: tag['Value'] for tag in tags_response['ResourceTagSet']['Tags']}
+            
+            if tags.get('CreatedBy') == 'platform-cli':
+                found_managed_zone = True
+                owner = tags.get('Owner', 'unknown')
+                
+                click.secho(f"\n Domain: {zone['Name']}", fg='yellow', bold=True)
+                click.echo(f"   ID: {zone_id} | Owner: {owner}")
+
+                records_response = client.list_resource_record_sets(HostedZoneId=zone_id_full)
+                
+                click.echo("   Records:")
+                for record in records_response['ResourceRecordSets']:
+                    values = [r.get('Value', r.get('DNSName', '')) for r in record.get('ResourceRecords', [])]
+                    val_str = ", ".join(values) if values else "Alias/Special"
+
+                    click.echo(f"     - {record['Name']} [{record['Type']}] -> {val_str} (TTL: {record.get('TTL', 'N/A')})")
+        
+        if not found_managed_zone:
+            click.echo("No hosted zones created by this CLI were found.")
+            
     except Exception as e:
-        click.secho(f"Error listing hosted zones: {e}", fg='red')        
+        click.secho(f"Error listing hosted zones and records: {e}", fg='red')
