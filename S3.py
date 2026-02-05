@@ -49,6 +49,7 @@ def upload_file_bucket(bucket_name, file_path):
         
     except Exception as e:
         click.secho(f"AWS Error: {e}", fg='red') 
+    
         
 def list_buckets():
     """List all S3 buckets"""
@@ -58,12 +59,24 @@ def list_buckets():
         buckets = response.get('Buckets', [])
         
         if not buckets:
-            click.secho("No S3 buckets found.", fg='yellow')
+            click.secho("No S3 buckets found that created by CLI.", fg='yellow')
             return
         
         click.secho("S3 Buckets:", fg='cyan', bold=True)
+
         for bucket in buckets:
-            click.echo(f" - {bucket['Name']}")
+            bucket_name = bucket['Name']    
+            tagging = s3_client.get_bucket_tagging(Bucket=bucket_name) 
+                
+            tags = {}
+            tag_list = tagging.get('TagSet', [])
+            for tag in tag_list:
+                key = tag['Key']
+                value = tag['Value']
+                tags[key] = value
+                               
+            if tags.get('CreatedBy') == 'platform-cli':
+                click.secho(f" {bucket_name} | Owner: {tags.get('Owner', 'unknown')}", fg='yellow')
             
     except Exception as e:
         click.secho(f"AWS Error: {e}", fg='red')               

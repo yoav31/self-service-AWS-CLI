@@ -81,7 +81,7 @@ def list_hosted_zones():
     try:
         zones_response = client.list_hosted_zones()
         found_managed_zone = False
-        click.secho("=== Managed Hosted Zones & Records ===", fg='cyan', bold=True)
+        click.secho("Hosted Zones & Records:", fg='cyan', bold=True)
         
         for zone in zones_response['HostedZones']:
             zone_id_full = zone['Id']
