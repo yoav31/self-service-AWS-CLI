@@ -12,7 +12,6 @@ def create_hosted_zone(domain):
                 'PrivateZone': False
             }
         )
-        # Tag the hosted zone separately
         client.change_tags_for_resource(
             ResourceType='hostedzone',
             ResourceId=response['HostedZone']['Id'].split('/')[-1],
@@ -32,15 +31,12 @@ def create_hosted_zone(domain):
 def manage_hosted_records(domain, ip_address, action):
     client = boto3.client('route53')
     try:
-        # 1. Find the Zone ID by name
         zones = client.list_hosted_zones_by_name(DNSName=domain)
         if not zones['HostedZones'] or zones['HostedZones'][0]['Name'] != f"{domain}.":
             click.secho(f"No hosted zone found for: {domain}", fg='red')
             return
             
         zone_id = zones['HostedZones'][0]['Id'].split('/')[-1]
-
-        # 2. Check permissions - does the Zone belong to the CLI?
         tags_resp = client.list_tags_for_resource(ResourceType='hostedzone', ResourceId=zone_id)
         tags = {tag['Key']: tag['Value'] for tag in tags_resp['ResourceTagSet']['Tags']}
         
