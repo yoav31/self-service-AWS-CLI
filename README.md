@@ -113,12 +113,3 @@ python main.py s3 list
 * You can add new commands by creating new Python modules and integrating them into the CLI.
 
 ---
-
-## 📦 Contributions
-
-Contributions are welcome! Open an issue or submit a Pull Request with improvements or new commands.
-
- 📦 תרומות
-
-תרומות תמיד מתקבלות בברכה! פשוט פתח issue או Pull Request עם שדרוגים או פקודות חדשות.
-
