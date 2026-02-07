@@ -7,30 +7,32 @@ def create_bucket(name, access):
     if access not in ['private', 'public']:
         click.secho("Invalid access level. Use 'private' or 'public'.", fg='red')
         return
-    elif access == 'public':
+    if access == 'public':
         choise = click.prompt("Are you sure that the s3 will be public? (yes/no)", type=str)
-        if choise.lower() == 'no':
+        if choise.lower() != 'yes':
             click.secho("Bucket creation aborted.", fg='yellow')
-            return
-        elif access != 'yes':
-            click.secho("Invalid choice. Bucket creation aborted.", fg='red')
             return
     s3_client = boto3.client('s3', region_name='us-east-1')
     try:
-        if access.lower() == 'public':
-            acl = 'public-read'
-        else:
-            acl = 'private'
-        
+        acl = 'public-read' if access.lower() == 'public' else 'private'
         s3_client.create_bucket(
             Bucket=name,
-            ACL=acl,
-            CreateBucketConfiguration={'LocationConstraint': 'us-east-1'}
+            ACL=acl)
+
+        s3_client.put_bucket_tagging(
+            Bucket=name,
+            Tagging={
+                'TagSet': [
+                    {'Key': 'CreatedBy', 'Value': 'platform-cli'},
+                    {'Key': 'Owner', 'Value': 'yoavvaknin'}
+                ]
+            }
         )
-        click.secho(f" Created S3 bucket: {name} with {access} access", fg='green', bold=True)
         
+        click.secho(f"Created S3 bucket: {name} with {access} access", fg='green', bold=True)
+            
     except Exception as e:
-        click.secho(f" AWS Error: {e}", fg='red')
+        click.secho(f"AWS Error: {e}", fg='red')
         
 
 
@@ -52,31 +54,37 @@ def upload_file_bucket(bucket_name, file_path):
     
         
 def list_buckets():
-    """List all S3 buckets"""
+    """List S3 buckets created by the CLI"""
     s3_client = boto3.client('s3', region_name='us-east-1')
+    found_managed_bucket = False
+    
     try:
         response = s3_client.list_buckets()
         buckets = response.get('Buckets', [])
-        
         if not buckets:
-            click.secho("No S3 buckets found that created by CLI.", fg='yellow')
+            click.secho("No S3 buckets found in your AWS account.", fg='yellow')
             return
-        
-        click.secho("S3 Buckets:", fg='cyan', bold=True)
+        click.secho("Managed S3 Buckets:", fg='cyan', bold=True)
 
         for bucket in buckets:
-            bucket_name = bucket['Name']    
-            tagging = s3_client.get_bucket_tagging(Bucket=bucket_name) 
+            bucket_name = bucket['Name']
+            try:
+                tagging = s3_client.get_bucket_tagging(Bucket=bucket_name)
+                tags = {tag['Key']: tag['Value'] for tag in tagging.get('TagSet', [])}
                 
-            tags = {}
-            tag_list = tagging.get('TagSet', [])
-            for tag in tag_list:
-                key = tag['Key']
-                value = tag['Value']
-                tags[key] = value
-                               
-            if tags.get('CreatedBy') == 'platform-cli':
-                click.secho(f" {bucket_name} | Owner: {tags.get('Owner', 'unknown')}", fg='yellow')
-            
+                if tags.get('CreatedBy') == 'platform-cli':
+                    click.secho(f"{bucket_name} | Owner: {tags.get('Owner', 'unknown')}", fg='yellow')
+                    found_managed_bucket = True 
+
+            except s3_client.exceptions.ClientError as e:
+
+                if e.response['Error']['Code'] == 'NoSuchTagSet':
+                    continue
+                else:
+                    click.echo(f"Could not read tags for {bucket_name}: {e}")
+        
+        if not found_managed_bucket:
+            click.secho("No S3 buckets found that were created by this CLI.", fg='yellow')
+
     except Exception as e:
-        click.secho(f"AWS Error: {e}", fg='red')               
+        click.secho(f"AWS Error: {e}", fg='red')
