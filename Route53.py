@@ -114,3 +114,5 @@ def list_hosted_zones():
             
     except Exception as e:
         click.secho(f"Error listing hosted zones and records: {e}", fg='red')
+        
+        
