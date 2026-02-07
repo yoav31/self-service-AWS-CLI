@@ -18,7 +18,7 @@ docker run -it `
 
 * Python 3.12+
 * Docker (for container version)
-* AWS CLI or credentials available in `~/.aws/credentials`
+* AWS CLI or credentials available 
 * Python packages: `boto3`, `click`
 
 ---
