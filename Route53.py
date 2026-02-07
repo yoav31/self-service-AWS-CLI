@@ -85,13 +85,14 @@ def list_hosted_zones():
         
         for zone in zones_response['HostedZones']:
             zone_id_full = zone['Id']
-            zone_id = zone_id_full.split('/')[-1]
-            
-            tags_response = client.list_tags_for_resource(
-                ResourceType='hostedzone',
-                ResourceId=zone_id
-            )
-            tags = {tag['Key']: tag['Value'] for tag in tags_response['ResourceTagSet']['Tags']}
+            zone_id = zone_id_full.split('/')[-1]           
+            tags_response = client.list_tags_for_resource(ResourceType='hostedzone',ResourceId=zone_id)
+            tags = {}
+            tag_list = tags_response['ResourceTagSet']['Tags']
+            for tag in tag_list:
+                key = tag['Key']
+                value = tag['Value']
+                tags[key] = value
             
             if tags.get('CreatedBy') == 'platform-cli':
                 found_managed_zone = True
