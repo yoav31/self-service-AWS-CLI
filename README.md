@@ -70,7 +70,12 @@ python main.py route53 list
 ```bash
 python main.py s3 list
 ```
-
+```bash
+python main.py ec2 list
+```
+```bash
+python main.py ec2 create --name <your_name_ec2> --
+```
 > The tool uses Click to provide clear commands with a `--help` option for each command.
 
 ---
